@@ -1,6 +1,7 @@
 #pragma once
 #include <math.h>
 #include "OSH_sound_localization.h"
+#include "sort.h"
 
 // 두 배열에서 겹치는 값들의 평균을 구함
 double intsec_mean(double *A, double *B, int len)
@@ -461,8 +462,8 @@ double cord3_trans(double *planes_azimuth, double *planes_elevation, double *s_t
 	if (t_piangle1 > 90) {
 		t_piangle1 = 180 - t_piangle1;
 	}
-
 	dir1[0] = round(t_theta1);
+
 	dir1[1] = round(t_piangle1);
 
 	x = tr_out11[0];            y = tr_out11[1];            z = tr_out11[2];

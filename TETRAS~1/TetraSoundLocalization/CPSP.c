@@ -1,5 +1,6 @@
 #pragma once
 #include <math.h>
+#include <stdio.h>
 #include "CPSP.h"
 
 // ILD(Interaural level difference) 를 위한 HPF
@@ -17,40 +18,34 @@ const double hpf[257] = { 0.0001533,0.0001506,0.0001483,0.0001463,0.0001444,0.00
 -0.0002135,-0.0001788,-0.0001466,-0.0001168,-0.0000892,-0.0000639,-0.0000406,-0.0000194,0.0000000,0.0000176,		0.0000334,0.0000477,0.0000604,0.0000718,0.0000818,0.0000907,0.0000984,0.0001052,0.0001110,0.0001160,
 0.0001203,0.0001240,0.0001271,0.0001297,0.0001319,0.0001338,0.0001355,0.0001371,0.0001385,0.0001399,				0.0001413,0.0001428,0.0001444,0.0001463,0.0001483,0.0001506,0.0001533 };
 
-double	m_pExecBuffer_t[2][gs_buff_s_fft_temp * 2];
-double	m_pSizeBuffer_1[2][gs_buff_s_fft_temp * 2];
-double	m_pResult[gs_buff_s_fft_temp * 2];
-double	m_pDelay[gs_buff_s_fft_temp * 2];
-double	m_pRLxy[gs_buff_s_fft_temp * 2];
+double	m_pExecBuffer_t[2][FFT_BUFF * 2];
+double	m_pSizeBuffer_1[2][FFT_BUFF * 2];
+double	m_pResult[FFT_BUFF * 2];
+double	m_pDelay[FFT_BUFF * 2];
+double	m_pRLxy[FFT_BUFF * 2];
 
-double CPSP_FILT_normal(double *Buff0, double *Buff1, int Len, double max_d) // THREAD 로 동작한는 부분 MSCPSP 연산을 독립적으로 연산
+double CPSP_FILT_normal(double *Buff0, double *Buff1, int Len, double max_d) 
 {
-	FILTER hpfilter = { 0, NULL };
 	int i;
 	double maxindex = 0, TheMaxPos = 0;
 	double max = -10000001.0;
 
-	//   C P S P   입력 시스템.. 시작...
-	hpfilter.length = 257;
-	hpfilter.coef = hpf;
-
-	// m_pThreadBuffer로 들어오는 데이터에서 LEFT and RIGHT 신호 분리 8단계 1/16
-	for (i = 0; i < Len; i++)
+	// 데이터에서 LEFT and RIGHT 신호 분리 8단계 1/16
+	for (i = 0; i < SIGNAL_BUFF; i++)
 	{
-		if (i < gs_buff_cpsp_zero)
-		{
-			m_pExecBuffer_t[0][i * 2] = Buff0[i];
-			m_pExecBuffer_t[0][i * 2 + 1] = 0;
-			m_pExecBuffer_t[1][i * 2] = Buff1[i];
-			m_pExecBuffer_t[1][i * 2 + 1] = 0;						//	<-	complex
-		}
-		else
-		{
-			m_pExecBuffer_t[0][i * 2] = 0;
-			m_pExecBuffer_t[0][i * 2 + 1] = 0;
-			m_pExecBuffer_t[1][i * 2] = 0;
-			m_pExecBuffer_t[1][i * 2 + 1] = 0;						//	<-	complex
-		}
+		m_pExecBuffer_t[0][i * 2] = Buff0[i];
+		m_pExecBuffer_t[0][i * 2 + 1] = 0;
+		m_pExecBuffer_t[1][i * 2] = Buff1[i];
+		m_pExecBuffer_t[1][i * 2 + 1] = 0;
+	}
+
+	// 패딩
+	for (; i < FFT_BUFF; i++)
+	{
+		m_pExecBuffer_t[0][i * 2] = 0;
+		m_pExecBuffer_t[0][i * 2 + 1] = 0;
+		m_pExecBuffer_t[1][i * 2] = 0;
+		m_pExecBuffer_t[1][i * 2 + 1] = 0;
 	}
 
 	//    F F T
@@ -83,17 +78,14 @@ double CPSP_FILT_normal(double *Buff0, double *Buff1, int Len, double max_d) // 
 			+ m_pRLxy[i * 2 + 1] * m_pRLxy[i * 2 + 1]);
 
 	}
-	// ##########################################################################
+
 	//  CPSP  에 대한  Inverse Fourier Transform
-	// ##########################################################################	
 	cdft(Len * 2, 1, m_pResult);
 
 	for (i = 0; i < Len * 2; i++)
 		m_pResult[i] = m_pResult[i] / Len;
 
-	// ##########################################################################
 	//	FFTSHIFT 과정...
-	// ##########################################################################
 	for (i = 0; i < Len; i++)
 	{
 		if (i < Len / 2)
@@ -103,9 +95,7 @@ double CPSP_FILT_normal(double *Buff0, double *Buff1, int Len, double max_d) // 
 			m_pDelay[i * 2] = m_pResult[(i - Len / 2) * 2];
 	}
 
-	// ##########################################################################
 	//	실험 결과 저장...
-	// ##########################################################################
 	for (i = (Len / 2) - max_d; i < (Len / 2) + max_d; i++)
 		if (m_pDelay[2 * i] > max)
 		{
@@ -122,11 +112,7 @@ double CPSP_FILT_normal(double *Buff0, double *Buff1, int Len, double max_d) // 
 	return TheMaxPos;
 }
 
-// ##########################################################################
 //  FAST FOURIER TRANSFORM ALGORITHM SUB ROUTINE 여기 부터 끝까지..
-// ##########################################################################
-
-
 /*
 Fast Fourier/Cosine/Sine Transform
 dimension   :one

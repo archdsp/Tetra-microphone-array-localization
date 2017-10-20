@@ -1,10 +1,9 @@
 #pragma once
 
-#define gs_buff_s_fft_temp 32768
-#define gs_buff_cpsp_zero 30000 /*gs_buff_s 를 3개 받아서 처리함*/
+#define SIGNAL_BUFF 30000 /*gs_buff_s 를 3개 받아서 처리함*/
 
 // gs_buff_s 를 3개 받아서 처리함
-#define gs_buff_cpsp 32768 
+#define FFT_BUFF 32768 
 
 typedef struct
 {

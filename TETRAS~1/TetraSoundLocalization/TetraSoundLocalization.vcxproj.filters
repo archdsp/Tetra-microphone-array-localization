@@ -18,9 +18,6 @@
     <ClCompile Include="main.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="tetra_sound_localization.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="sort.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -30,11 +27,14 @@
     <ClCompile Include="CPSP.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="AAI_sound_localization.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="tetra_sound_localization.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tetra_sound_localization.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="sort.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -42,6 +42,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="CPSP.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="AAI_sound_localization.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="tetra_sound_localization.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
