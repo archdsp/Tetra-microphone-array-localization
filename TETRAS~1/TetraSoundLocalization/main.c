@@ -26,61 +26,110 @@
 //#define READ_FROM_DAQ
 #define READ_FROM_FILE
 
-FILE *record = NULL, *angle = NULL;
+FILE *record = NULL, *angle = NULL, *TDOA = NULL;
 
 #ifdef READ_FROM_FILE
 
 void main()
 {
+	srand(time(NULL));
+
 	double data[CHANNEL_COUNT * CHANNEL_PER_BUFFER] = { 0.0, };  // 4채널 데이터 버퍼
 	double TDOA_01 = 0, TDOA_20 = 0, TDOA_30 = 0, TDOA_12 = 0, TDOA_13 = 0, TDOA_23 = 0;// 타임 딜레이
 
+	double azimuth[5] = { -999, -999, -999, -999, -999 }, elevation[5] = { -999, -999, -999, -999, -999 };
 	// OSH, AAI 방위 고도
-	double osh_azimuth[5] = { 0, }, osh_elevation[5] = { 0, };
-	double aai_azimuth[5] = { 0, }, aai_elevation[5] = { 0, };
+	double osh_azimuth[5] = { -999, -999, -999, -999, -999 }, osh_elevation[5] = { -999, -999, -999, -999, -999 };
+	double aai_azimuth[5] = { -999, -999, -999, -999, -999 }, aai_elevation[5] = { -999, -999, -999, -999, -999 };
 	double s_theta_all[10], s_piangle_all[10];
 
 	// cpsp 인자
 	double MAX_Delay = 40, temp = 999;
-
+	double TDOA[6] = { 0.0 };
 	int i = 0, case_cnt = 1;
-
-	record = fopen("C:\\Users\\pblwo\\Desktop\\녹음_3m_a000도_e30도_25600hz.txt", "r");
-//	angle = fopen("./data/2017-10-09/noise/angle/awgn20_각도_3m_a0도_e0도_25600hz.txt", "w");
-
-	while (fscanf(record, "%lf\t%lf\t%lf\t%lf\n",
-		&data[i], &data[i + CHANNEL_PER_BUFFER], &data[i + 2 * CHANNEL_PER_BUFFER], &data[i + 3 * CHANNEL_PER_BUFFER]) != EOF)
+	clock_t start = 0;
+	double GT_azimuth = 0.0, GT_elevation = 0.0;
+	double error_azimuth = 0.0, error_elevation = 0.0;
+	double deg2rad = (M_PI / 180.0);
+	double rad2deg = (180.0 / M_PI);
+	record = fopen("C:\\Users\\pblwo\\Desktop\\noise\\고도 30도\\awgn20_녹음_6m_a060도_e30도_25600hz.txt", "r");
+	if (record == NULL)
 	{
-		i++;
-		if (i >= CHANNEL_PER_BUFFER)
-		{
-			fprintf(stdout, "%d\n", case_cnt);
-
-			// 0. CPSP로 타임 딜레이 계산
-			TDOA_01 = CPSP_FILT_normal(&data[0], &data[CHANNEL_PER_BUFFER], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
-			TDOA_12 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER], &data[CHANNEL_PER_BUFFER * 2], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
-			TDOA_20 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER * 2], &data[0], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
-			TDOA_30 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER * 3], &data[0], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
-			TDOA_13 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER], &data[CHANNEL_PER_BUFFER * 3], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
-			TDOA_23 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER * 2], &data[CHANNEL_PER_BUFFER * 3], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
-
-			do_osh_algorithm(osh_azimuth, osh_elevation, TDOA_01, TDOA_20, TDOA_30, TDOA_12, TDOA_13, TDOA_23);
-			cord3_trans(osh_azimuth, osh_elevation, s_theta_all, s_piangle_all, 20, mic_distance);
-
-			do_AAI_algorithm2(aai_azimuth, aai_elevation, TDOA_01, TDOA_20, TDOA_30, TDOA_12, TDOA_13, TDOA_23);
-			cord3_trans(aai_azimuth, aai_elevation, s_theta_all, s_piangle_all, 20, mic_distance);
-
-			//fprintf(stdout, "%lf\t%lf\t%lf\t%lf\n", osh_azimuth[4], osh_elevation[4], aai_azimuth[4], aai_elevation[4]);
-			//fprintf(angle, "%lf\t%lf\t%lf\t%lf\n", osh_azimuth[4], osh_elevation[4], aai_azimuth[4], aai_elevation[4]);
-			i = 0;
-			case_cnt++;
-			getchar();
-		}
+		fprintf(stdout, "no file\n");
+		return 0;
 	}
+	angle = fopen("C:\\Users\\pblwo\\Desktop\\noise\\고도 30도\\angle\\awgn20_각도_6m_a060도_e30도_25600hz.txt", "w");
+	
+//	TDOA = fopen("C:\\Users\\pblwo\\Desktop\\2017-10-14\\2017-10-14\\TDOA\\고도각 0도\\TDOA_3m_a000도_e00도_25600hz.txt", "w");
+ 
+//while (fscanf(record, "%lf\t%lf\t%lf\t%lf\n",	
+	//	&data[i], &data[i + CHANNEL_PER_BUFFER], &data[i + 2 * CHANNEL_PER_BUFFER], &data[i + 3 * CHANNEL_PER_BUFFER]) != EOF)
+	
+	while(case_cnt <= 1000)
+	{
+		rand_TDOA(TDOA, mic_distance, &GT_azimuth, &GT_elevation);
+		TDOA_01 = TDOA[0];
+		TDOA_12 = TDOA[1];
+		TDOA_20 = TDOA[2];
+		TDOA_30 = TDOA[3];
+		TDOA_13 = TDOA[4];
+		TDOA_23 = TDOA[5];
+		
+		//do_osh_algorithm(azimuth, elevation, TDOA_01, TDOA_20, TDOA_30, TDOA_12, TDOA_13, TDOA_23);		
+		do_AAI_algorithm2(azimuth, elevation, TDOA_01, TDOA_20, TDOA_30, TDOA_12, TDOA_13, TDOA_23);
+		cord3_trans(azimuth, elevation, s_theta_all, s_piangle_all, 20, mic_distance);
+		//printf("%d : %lf %lf\n", case_cnt, GT_azimuth * rad2deg, GT_elevation * rad2deg);
+		//printf("%d : %lf %lf\n", case_cnt, azimuth[4], elevation[4]);
+		
+		if (isnan(azimuth[4]) || isnan(elevation[4]))
+			continue;
+
+		azimuth[4] *= deg2rad;
+		elevation[4] *= deg2rad;
+		
+		error_azimuth = fabs(((GT_azimuth - azimuth[4]) * rad2deg));
+		error_elevation = fabs(((GT_elevation - elevation[4]) * rad2deg));
+		case_cnt++;
+
+		//if (i >= CHANNEL_PER_BUFFER)
+		//{
+		//	fprintf(stdout, "%d\n", case_cnt);
+
+		//	// 0. CPSP로 타임 딜레이 계산
+		//	TDOA_01 = CPSP_FILT_normal(&data[0], &data[CHANNEL_PER_BUFFER], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
+		//	TDOA_12 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER], &data[CHANNEL_PER_BUFFER * 2], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
+		//	TDOA_20 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER * 2], &data[0], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
+		//	TDOA_30 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER * 3], &data[0], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
+		//	TDOA_13 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER], &data[CHANNEL_PER_BUFFER * 3], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
+		//	TDOA_23 = CPSP_FILT_normal(&data[CHANNEL_PER_BUFFER * 2], &data[CHANNEL_PER_BUFFER * 3], FFT_BUFF, MAX_Delay) / SAMPLING_RATE;
+
+		//	do_osh_algorithm(osh_azimuth, osh_elevation, TDOA_01, TDOA_20, TDOA_30, TDOA_12, TDOA_13, TDOA_23);
+		//	cord3_trans(osh_azimuth, osh_elevation, s_theta_all, s_piangle_all, 20, mic_distance);
+
+		//	do_AAI_algorithm2(aai_azimuth, aai_elevation, TDOA_01, TDOA_20, TDOA_30, TDOA_12, TDOA_13, TDOA_23);
+		//	cord3_trans(aai_azimuth, aai_elevation, s_theta_all, s_piangle_all, 20, mic_distance);
+
+		//	//fprintf(angle, "%lf\t%lf\t%lf\t%lf\n", osh_azimuth[4], osh_elevation[4], aai_azimuth[4], aai_elevation[4]);
+		//	fprintf(stdout, "%lf\t%lf\t%lf\t%lf\n", osh_azimuth[4], osh_elevation[4], aai_azimuth[4], aai_elevation[4]);
+		//	//fprintf(angle, "%lf\t%lf\t%lf\t%lf\t%lf\t", osh_azimuth[0], osh_azimuth[1], osh_azimuth[2], osh_azimuth[3], osh_azimuth[4]);
+		//	//fprintf(angle, "%lf\t%lf\t%lf\t%lf\t%lf\t\t", aai_azimuth[0], aai_azimuth[1], aai_azimuth[2], aai_azimuth[3], aai_azimuth[4]);
+		//	//fprintf(angle, "%lf\t%lf\t%lf\t%lf\t%lf\t", osh_elevation[0], osh_elevation[1], osh_elevation[2], osh_elevation[3], osh_elevation[4]);
+		//	//fprintf(angle, "%lf\t%lf\t%lf\t%lf\t%lf\t\t", aai_elevation[0], aai_elevation[1], aai_elevation[2], aai_elevation[3], aai_elevation[4]);
+		//	//fprintf(angle, "%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n", TDOA_01, TDOA_12, TDOA_20, TDOA_30, TDOA_13, TDOA_23);
+
+		//	i = 0;
+		//	case_cnt++;
+		//	getchar();
+		//}
+	}
+	start = clock() - start;
+
+	printf("ave : %lf %lf\n", error_azimuth / (double)case_cnt, error_elevation / (double)case_cnt);
+	printf("\n%f seconds \n",((float)start) / CLOCKS_PER_SEC);
 
 	fclose(record);
-//	fclose(angle);
-
+	fclose(angle);
+	printf("\a\a\a");
 }
 
 #else READ_FROM_DAQ

@@ -1,2 +1,8 @@
-﻿  tetra_sound_localization.c
-  TetraSoundLocalization.vcxproj -> C:\Users\pblwo\Desktop\Project\TETRAS~1\x64\Debug\TetraSoundLocalization.exe
+﻿  main.c
+c:\users\pblwo\desktop\project\tetramicarraysoundlocalization\tetras~1\tetrasoundlocalization\main.c(35): warning C4244: '함수': 'time_t'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+c:\users\pblwo\desktop\project\tetramicarraysoundlocalization\tetras~1\tetrasoundlocalization\main.c(59): warning C4098: 'main': 'void' 함수에서 값을 반환하고 있습니다.
+c:\users\pblwo\desktop\project\tetramicarraysoundlocalization\tetras~1\tetrasoundlocalization\main.c(55): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(207): note: 'fopen' 선언을 참조하십시오.
+c:\users\pblwo\desktop\project\tetramicarraysoundlocalization\tetras~1\tetrasoundlocalization\main.c(61): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(207): note: 'fopen' 선언을 참조하십시오.
+  TetraSoundLocalization.vcxproj -> C:\Users\pblwo\Desktop\Project\tetramicarraysoundlocalization\TETRAS~1\x64\Debug\TetraSoundLocalization.exe

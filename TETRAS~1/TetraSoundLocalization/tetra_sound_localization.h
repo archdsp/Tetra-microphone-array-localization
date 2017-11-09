@@ -5,6 +5,9 @@
 
 #define CHANNEL_COUNT 4
 
+
+void rand_TDOA(double TDOA[], double mic_dist, double *sound_azimuth, double* sound_elevation);
+
 // À½¼Ó
 extern double SOUND_VEL;
 
