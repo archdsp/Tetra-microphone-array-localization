@@ -1,0 +1,3 @@
+﻿  TetraAAI_paper_version.c
+c:\users\pblwo\desktop\project\tetramicarraysoundlocalization\tetras~1\tetraaai_paper_version\tetraaai_paper_version.c(28): warning C4244: '함수': 'time_t'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  TetraAAI_paper_version.vcxproj -> C:\Users\pblwo\Desktop\Project\tetramicarraysoundlocalization\TETRAS~1\x64\Debug\TetraAAI_paper_version.exe
